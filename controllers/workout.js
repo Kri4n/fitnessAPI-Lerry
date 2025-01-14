@@ -40,7 +40,9 @@ const getMyWorkouts = (req, res) => {
     .then(workout => {
         if(workout.length > 0){
             return res.status(200).send(workout);
-        } 
+        } else {
+            return res.status(404).send({message: 'No workouts found'})
+        }
     })
     .catch(err => {
         return res.status(500).send(err);
@@ -49,17 +51,19 @@ const getMyWorkouts = (req, res) => {
 
 const updateWorkout = (req, res) => {
 
+    const userId = req.user.id;
+
     let updatedWorkout = {
         name: req.body.name,
         duration: req.body.duration
     }
 
-    return Workout.findByIdAndUpdate(req.params.workoutId, updatedWorkout)
+    return Workout.findOneAndUpdate({_id: req.params.workoutId, userId: userId}, updatedWorkout,{new:true})
     .then(workout => {
         if(workout){
-            res.status(200).send({message: 'Workout Updated Successfully', updatedWorkout: workout})
+            return res.status(200).send({message: 'Workout updated successfully', updatedWorkout: workout})
         } else {
-            res.status(404).send({error: 'Does not exist'});
+            return res.status(404).send({error: 'Workout does not exist'});
         }
     })
     .catch(err => {
@@ -69,12 +73,15 @@ const updateWorkout = (req, res) => {
 }
 
 const deleteWorkout = (req, res) => {
-    return Workout.findByIdAndDelete(req.params.workoutId)
+
+    const userId = req.user.id;
+
+    return Workout.findOneAndDelete({_id: req.params.workoutId, userId: userId})
     .then((workout) => {
         if(workout){
-            res.status(200).send({message: 'Workout deleted successfully'})
+            return res.status(200).send({message: 'Workout deleted successfully'})
         } else {
-            res.status(404).send({message: 'Does not exist'})
+            return res.status(404).send({message: 'Workout does not exist'})
         }
     })
     .catch(err => res.status(500).send(err))
@@ -82,16 +89,18 @@ const deleteWorkout = (req, res) => {
 
 const completeWorkoutStatus = (req, res) => {
 
+    const userId = req.user.id;
+
     const completedWorkout = {
         status: 'completed'
     }
 
-    return Workout.findByIdAndUpdate(req.params.workoutId, completedWorkout)
+    return Workout.findOneAndUpdate({_id: req.params.workoutId, userId: userId}, completedWorkout, {new:true})
     .then(workout => {
         if(workout){
-            res.status(200).send({message: 'Workout status updated successfully'})
+            return res.status(200).send({message: 'Workout status updated successfully', updatedWorkout: workout})
         } else {
-            res.status(404).send({message: 'Does not exist'})
+            return res.status(404).send({message: 'Does not exist'})
         }
     })
     .catch(err => res.status(500).send(err))
